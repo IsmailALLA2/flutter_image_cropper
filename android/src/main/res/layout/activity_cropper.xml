@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <!-- Full screen image cropper with padding -->
+    <me.pqpo.smartcropperlib.view.CropImageView android:id="@+id/iv_crop" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="16dp"/>
+
+    <!-- Preview ImageView (Initially Hidden) -->
+    <ImageView android:id="@+id/iv_preview" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter" android:visibility="gone"/>
+
+    <!-- Pre-Crop Bottom Action Bar -->
+    <LinearLayout android:id="@+id/pre_crop_actions" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_alignParentBottom="true" android:background="#99000000" android:orientation="horizontal" android:padding="16dp">
+
+        <Button android:id="@+id/btn_crop" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/selectableItemBackground" android:text="Crop" android:textColor="#FFFFFF" />
+    </LinearLayout>
+
+    <!-- Post-Crop Bottom Action Bar (Initially Hidden) -->
+    <LinearLayout android:id="@+id/post_crop_actions" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_alignParentBottom="true" android:background="#99000000" android:orientation="horizontal" android:padding="16dp" android:visibility="gone">
+
+        <Button android:id="@+id/btn_reset" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:background="?attr/selectableItemBackground" android:text="Reset" android:textColor="#FFFFFF" />
+
+        <ImageButton android:id="@+id/btn_rotate" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="Rotate" android:padding="8dp" android:src="@android:drawable/ic_menu_rotate" />
+
+        <Button android:id="@+id/btn_done" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:background="?attr/selectableItemBackground" android:text="Done" android:textColor="#FFFFFF" />
+    </LinearLayout>
+</RelativeLayout>
