@@ -35,6 +35,14 @@ minSdkVersion 21
 ## Basic Usage
 
 ```dart
+final croppedPath = await FlutterImageCropper.cropImage(image.path);
+    if (croppedPath != null) {
+      // Use croppedPath
+    }
+
+```
+
+```dart
 import 'package:flutter_image_cropper/flutter_image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
