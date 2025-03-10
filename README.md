@@ -8,7 +8,9 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_image_cropper: ^0.1.0
+#this plugin is not exist on pub.dev yet while do this :
+  flutter_image_cropper:
+      path: {PLACE_HERE_THE_PLUGIN_PATH}
   image_picker: ^1.1.2
   permission_handler: ^11.4.0
 ```
