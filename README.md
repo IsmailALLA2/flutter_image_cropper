@@ -9,8 +9,8 @@ Add to your `pubspec.yaml`:
 ```yaml
 dependencies:
   flutter_image_cropper: ^0.1.0
-  image_picker: ^0.8.6 # For picking images
-  permission_handler: ^10.0.0 # For handling permissions
+  image_picker: ^1.1.2
+  permission_handler: ^11.4.0
 ```
 
 ## Android Setup
