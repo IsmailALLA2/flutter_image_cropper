@@ -8,9 +8,11 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_image_cropper: ^0.1.0
-  image_picker: ^0.8.6 # For picking images
-  permission_handler: ^10.0.0 # For handling permissions
+#this plugin is not exist on pub.dev yet while do this :
+  flutter_image_cropper:
+      path: {PLACE_HERE_THE_PLUGIN_PATH}
+  image_picker: ^1.1.2
+  permission_handler: ^11.4.0
 ```
 
 ## Android Setup
@@ -31,6 +33,14 @@ minSdkVersion 21
 ```
 
 ## Basic Usage
+
+```dart
+final croppedPath = await FlutterImageCropper.cropImage(image.path);
+    if (croppedPath != null) {
+      // Use croppedPath
+    }
+
+```
 
 ```dart
 import 'package:flutter_image_cropper/flutter_image_cropper.dart';
