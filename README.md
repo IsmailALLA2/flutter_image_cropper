@@ -1,13 +1,19 @@
 # Flutter Image Cropper
 
-A Flutter plugin for Android that provides native camera capture and image cropping functionality with a seamless user experience.
+A Flutter plugin for Android that provides native camera capture and image cropping functionality with a seamless user experience. This plugin is built using [SmartCropper](https://github.com/pqpo/SmartCropper) for powerful, intelligent edge detection and cropping capabilities.
 
 ## Features
 
-- 📷 Native Android camera UI
-- ✂️ Powerful image cropping with auto-detection
+- 📷 Native Android camera UI with a circular capture button
+- ✂️ Powerful image cropping with auto-detection (powered by SmartCropper)
 - 🔄 Image rotation functionality
 - 🔦 Camera flash control (on/off)
+
+## Credits
+
+This plugin is built with the following technologies:
+- [SmartCropper](https://github.com/pqpo/SmartCropper) v2.1.3 by [pqpo](https://github.com/pqpo) - An intelligent image cropping library for Android
+- Android CameraX API for the native camera functionality
 
 ## Installation
 
@@ -96,12 +102,14 @@ Register the provider in your application's AndroidManifest.xml inside the `<app
 
 ## Usage
 
-The plugin offers two main methods:
+The plugin offers three main approaches to capture and crop images:
 
-### 1. Take a photo and crop in one step (using the native camera)
+### 1. Native Camera with Crop (All-in-One)
+
+Use the plugin's built-in native camera UI with integrated cropping:
 
 ```dart
-// Launch native camera and cropper in one flow
+// Launch the plugin's native camera and cropper in one flow
 final String? croppedImagePath = await FlutterImageCropper.takePictureAndCrop();
 
 if (croppedImagePath != null) {
@@ -112,16 +120,39 @@ if (croppedImagePath != null) {
 }
 ```
 
-### 2. Crop an existing image (e.g., from gallery)
+### 2. Flutter Camera with Crop (Two-Step)
+
+Use Flutter's image_picker for camera capture, then send to the cropper:
 
 ```dart
-// First, pick an image
+// First use Flutter's image_picker to take a photo
+final XFile? image = await ImagePicker().pickImage(source: ImageSource.camera);
+
+if (image != null) {
+  // Then send to the plugin's cropper
+  final String? croppedPath = await FlutterImageCropper.cropImage(image.path);
+  
+  if (croppedPath != null) {
+    // Use the cropped image path
+    setState(() {
+      _imagePath = croppedPath;
+    });
+  }
+}
+```
+
+### 3. Gallery with Crop
+
+Pick an existing image from the gallery, then crop it:
+
+```dart
+// First pick an image from gallery
 final XFile? image = await ImagePicker().pickImage(source: ImageSource.gallery);
 
 if (image != null) {
   // Then send to cropper
   final String? croppedPath = await FlutterImageCropper.cropImage(image.path);
-
+  
   if (croppedPath != null) {
     // Use the cropped image path
     setState(() {
@@ -133,7 +164,7 @@ if (image != null) {
 
 ## Complete Example
 
-Here's a complete example showing how to implement both camera and gallery cropping with proper permission handling:
+Here's a complete example showing how to implement all three options with proper permission handling:
 
 ```dart
 import 'dart:io';
@@ -171,7 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _croppedImagePath;
   bool _isProcessing = false;
 
-  // Use native camera and cropper
+  // Method 1: Use native camera and cropper (all-in-one)
   Future<void> _takePictureAndCropNative() async {
     setState(() {
       _isProcessing = true;
@@ -235,39 +266,74 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Pick from gallery and crop
-  Future<void> _pickAndCropImage() async {
+  // Method 2: Use Flutter camera and then crop (two-step)
+  Future<void> _takePhotoWithFlutterCamera() async {
+    setState(() {
+      _isProcessing = true;
+    });
+
+    try {
+      // Request permissions
+      await Permission.camera.request();
+      
+      // Handle storage permissions
+      if (Platform.isAndroid) {
+        if (await _requestStoragePermission() == false) {
+          return;
+        }
+      }
+
+      // First take a photo with Flutter's image_picker
+      final XFile? photo = await ImagePicker().pickImage(source: ImageSource.camera);
+      
+      if (photo != null) {
+        // Check if file exists
+        final File file = File(photo.path);
+        if (!await file.exists()) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Image file does not exist')),
+            );
+          }
+          return;
+        }
+        
+        // Then send to cropper
+        final String? croppedPath = await FlutterImageCropper.cropImage(photo.path);
+
+        if (croppedPath != null && mounted) {
+          setState(() {
+            _croppedImagePath = croppedPath;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+      }
+    }
+  }
+
+  // Method 3: Pick from gallery and crop
+  Future<void> _pickFromGalleryAndCrop() async {
     setState(() {
       _isProcessing = true;
     });
 
     try {
       // Request storage permission
-      PermissionStatus storageStatus;
       if (Platform.isAndroid) {
-        try {
-          int sdkInt = int.parse(
-            (await Process.run('getprop', ['ro.build.version.sdk'])).stdout.trim(),
-          );
-
-          if (sdkInt >= 33) {
-            storageStatus = await Permission.photos.request();
-          } else {
-            storageStatus = await Permission.storage.request();
-          }
-        } catch (e) {
-          await Permission.storage.request();
-          storageStatus = await Permission.photos.request();
+        if (await _requestStoragePermission() == false) {
+          return;
         }
-      } else {
-        storageStatus = await Permission.photos.request();
-      }
-
-      if (storageStatus.isDenied) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Storage permission required'))
-        );
-        return;
       }
 
       // Pick image from gallery
@@ -309,7 +375,36 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Show selection dialog
+  // Helper method for storage permission
+  Future<bool> _requestStoragePermission() async {
+    try {
+      int sdkInt = int.parse(
+        (await Process.run('getprop', ['ro.build.version.sdk'])).stdout.trim(),
+      );
+      
+      PermissionStatus status;
+      if (sdkInt >= 33) {
+        status = await Permission.photos.request();
+      } else {
+        status = await Permission.storage.request();
+      }
+      
+      if (status.isDenied && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Storage permission required'))
+        );
+        return false;
+      }
+      return true;
+    } catch (e) {
+      // Fallback - request both permissions
+      await Permission.storage.request();
+      await Permission.photos.request();
+      return true;
+    }
+  }
+
+  // Show selection dialog with all three options
   void _showImageSourceOptions() {
     showModalBottomSheet(
       context: context,
@@ -318,19 +413,29 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_enhance),
-              title: const Text('Take Photo with Native Camera'),
-              subtitle: const Text('One-step process with cropping'),
+              title: const Text('Native Camera'),
+              subtitle: const Text('One-step process with built-in camera'),
               onTap: () {
                 Navigator.of(context).pop();
                 _takePictureAndCropNative();
               },
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Choose from Gallery'),
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Flutter Camera'),
+              subtitle: const Text('Use Flutter\'s camera then crop'),
               onTap: () {
                 Navigator.of(context).pop();
-                _pickAndCropImage();
+                _takePhotoWithFlutterCamera();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Gallery'),
+              subtitle: const Text('Choose existing image'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _pickFromGalleryAndCrop();
               },
             ),
           ],
@@ -392,20 +497,37 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(fontSize: 16),
                     ),
                     const SizedBox(height: 20),
-                    ElevatedButton.icon(
-                      onPressed: _takePictureAndCropNative,
-                      icon: const Icon(Icons.camera_enhance),
-                      label: const Text('Native Camera + Crop'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: _takePictureAndCropNative,
+                          icon: const Icon(Icons.camera_enhance),
+                          label: const Text('Native Camera'),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 20),
+                        ElevatedButton.icon(
+                          onPressed: _takePhotoWithFlutterCamera,
+                          icon: const Icon(Icons.camera_alt),
+                          label: const Text('Flutter Camera'),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 12),
                     ElevatedButton.icon(
-                      onPressed: _pickAndCropImage,
+                      onPressed: _pickFromGalleryAndCrop,
                       icon: const Icon(Icons.photo_library),
                       label: const Text('Gallery'),
                       style: ElevatedButton.styleFrom(
@@ -433,19 +555,35 @@ class _HomeScreenState extends State<HomeScreen> {
 
 ## Key Implementation Details
 
-### Native Camera Interface
+### Option 1: Native Camera Interface
 
-- Features a circular capture button in the center for taking photos
+- Built-in Android camera UI using CameraX API
+- Features a circular capture button in the center
 - Includes flash toggle (on/off) button in the top-right corner
-- Uses Android's CameraX API for a modern, reliable camera experience
+- Automatically sends captured photos to the cropper
+- Single method call: `FlutterImageCropper.takePictureAndCrop()`
 
-### Cropper Interface
+### Option 2: Flutter Camera
 
-- Automatic detection of document edges (using SmartCropper)
-- Manual adjustment of crop handles
-- Rotate button to correct image orientation
-- Preview mode to review the crop before saving
-- Text-based buttons for easy readability
+- Uses Flutter's image_picker package with camera source
+- Uses the system camera UI
+- Requires two steps: capture with image_picker, then send to cropper
+- More flexibility but less integrated experience
+
+### Option 3: Gallery Picker
+
+- Uses Flutter's image_picker package with gallery source
+- Allows selecting existing images for cropping
+- Perfect for when you already have images you want to crop
+
+### SmartCropper Integration
+
+This plugin uses [SmartCropper](https://github.com/pqpo/SmartCropper) v2.1.3 by pqpo, which provides:
+
+- Intelligent edge detection for documents
+- Automatic corner detection
+- Manual adjustment of crop points
+- High-quality image processing
 
 ### Permissions Handling
 
@@ -472,7 +610,3 @@ Check that you're properly handling the returned path and that your app has stor
 ## Contributing
 
 Feel free to contribute to this project by opening issues or submitting pull requests on GitHub.
-
-## License
-
-[Add your license information here]
