@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@android:color/black">
 
-    <!-- Full screen image cropper with padding -->
-    <me.pqpo.smartcropperlib.view.CropImageView android:id="@+id/iv_crop" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="16dp"/>
+    <!-- Top Toolbar with Done button -->
+    <RelativeLayout android:id="@+id/top_toolbar" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_alignParentTop="true" android:background="#99000000" android:padding="12dp">
 
-    <!-- Preview ImageView (Initially Hidden) -->
-    <ImageView android:id="@+id/iv_preview" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter" android:visibility="gone"/>
+        <Button android:id="@+id/btn_cancel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentStart="true" android:background="?attr/selectableItemBackground" android:text="Cancel" android:textColor="#FFFFFF" />
+
+        <Button android:id="@+id/btn_done" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:background="?attr/selectableItemBackground" android:text="Done" android:textColor="#FFFFFF" />
+    </RelativeLayout>
 
     <!-- Pre-Crop Bottom Action Bar -->
     <LinearLayout android:id="@+id/pre_crop_actions" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_alignParentBottom="true" android:background="#99000000" android:orientation="horizontal" android:padding="16dp">
@@ -13,13 +15,25 @@
         <Button android:id="@+id/btn_crop" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/selectableItemBackground" android:text="Crop" android:textColor="#FFFFFF" />
     </LinearLayout>
 
-    <!-- Post-Crop Bottom Action Bar (Initially Hidden) -->
+    <!-- Post-Crop Bottom Action Bar -->
     <LinearLayout android:id="@+id/post_crop_actions" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_alignParentBottom="true" android:background="#99000000" android:orientation="horizontal" android:padding="16dp" android:visibility="gone">
 
         <Button android:id="@+id/btn_reset" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:background="?attr/selectableItemBackground" android:text="Reset" android:textColor="#FFFFFF" />
 
-        <ImageButton android:id="@+id/btn_rotate" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="Rotate" android:padding="8dp" android:src="@android:drawable/ic_menu_rotate" />
-
-        <Button android:id="@+id/btn_done" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:background="?attr/selectableItemBackground" android:text="Done" android:textColor="#FFFFFF" />
+        <Button android:id="@+id/btn_rotate" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:background="?attr/selectableItemBackground" android:text="Rotate" android:textColor="#FFFFFF" />
     </LinearLayout>
+
+    <!-- Container for the cropper -->
+    <FrameLayout android:id="@+id/crop_container" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_below="@id/top_toolbar" android:layout_above="@id/pre_crop_actions" android:background="@android:color/black">
+
+        <!-- Full screen image cropper with padding -->
+        <me.pqpo.smartcropperlib.view.CropImageView android:id="@+id/iv_crop" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="16dp" android:background="@android:color/black"/>
+    </FrameLayout>
+
+    <!-- Container for the preview (separate from cropper) -->
+    <FrameLayout android:id="@+id/preview_container" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_below="@id/top_toolbar" android:layout_above="@id/post_crop_actions" android:background="@android:color/black" android:visibility="gone">
+
+        <!-- Preview ImageView: Using fitCenter to ensure the entire image is visible -->
+        <ImageView android:id="@+id/iv_preview" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter" android:background="@android:color/black" android:padding="16dp" />
+    </FrameLayout>
 </RelativeLayout>

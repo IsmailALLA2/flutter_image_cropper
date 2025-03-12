@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@android:color/black">
+
+    <FrameLayout android:id="@+id/camera_container" android:layout_width="match_parent" android:layout_height="match_parent">
+
+        <androidx.camera.view.PreviewView android:id="@+id/preview_view" android:layout_width="match_parent" android:layout_height="match_parent" />
+    </FrameLayout>
+
+    <!-- Top toolbar with flash button -->
+    <RelativeLayout android:id="@+id/top_toolbar" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_alignParentTop="true" android:background="#66000000" android:padding="16dp">
+
+        <ImageButton android:id="@+id/flash_button" android:layout_width="48dp" android:layout_height="48dp" android:layout_alignParentEnd="true" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="Flash" android:src="@android:drawable/ic_notification_overlay" android:tint="#FFFFFF" />
+
+        <Button android:id="@+id/close_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentStart="true" android:background="?attr/selectableItemBackground" android:text="Cancel" android:textColor="#FFFFFF" />
+    </RelativeLayout>
+
+    <!-- Bottom toolbar with moderately sized circular capture button -->
+    <RelativeLayout android:layout_width="match_parent" android:layout_height="120dp" android:layout_alignParentBottom="true" android:background="#66000000">
+
+        <!-- Smaller circular capture button -->
+        <FrameLayout android:id="@+id/capture_button_container" android:layout_width="70dp" android:layout_height="70dp" android:layout_centerInParent="true" android:background="@drawable/circular_button_background">
+
+            <Button android:id="@+id/capture_button" android:layout_width="60dp" android:layout_height="60dp" android:layout_gravity="center" android:background="@drawable/circular_button" android:contentDescription="Capture" />
+        </FrameLayout>
+    </RelativeLayout>
+</RelativeLayout>

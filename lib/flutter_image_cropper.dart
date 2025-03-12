@@ -20,4 +20,17 @@ class FlutterImageCropper {
       return null;
     }
   }
+
+  /// Launches the native camera UI to take a picture and then crops it.
+  ///
+  /// Returns the path to the cropped image, or null if the operation was canceled.
+  static Future<String?> takePictureAndCrop() async {
+    try {
+      final String? result = await _channel.invokeMethod('takePictureAndCrop');
+      return result;
+    } on PlatformException catch (e) {
+      print('Error taking picture and cropping: ${e.message}');
+      return null;
+    }
+  }
 }

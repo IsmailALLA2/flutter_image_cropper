@@ -8,20 +8,12 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.RadialGradient;
-import android.graphics.Shader;
 import java.io.IOException;
 
 import me.pqpo.smartcropperlib.SmartCropper;
@@ -31,8 +23,7 @@ public class CropperActivity extends AppCompatActivity {
 
     private CropImageView ivCrop;
     private ImageView ivPreview;
-    private Button btnCrop, btnDone, btnReset;
-    private ImageButton btnRotate;
+    private Button btnCrop, btnDone, btnReset, btnRotate, btnCancel;
     private LinearLayout preCropActions, postCropActions;
     private Bitmap originalBitmap;
     private Bitmap croppedBitmap;
@@ -58,11 +49,16 @@ public class CropperActivity extends AppCompatActivity {
         ivCrop = findViewById(R.id.iv_crop);
         ivPreview = findViewById(R.id.iv_preview);
         btnCrop = findViewById(R.id.btn_crop);
-        btnRotate = findViewById(R.id.btn_rotate);
         btnDone = findViewById(R.id.btn_done);
         btnReset = findViewById(R.id.btn_reset);
+        btnRotate = findViewById(R.id.btn_rotate);
+        btnCancel = findViewById(R.id.btn_cancel);
         preCropActions = findViewById(R.id.pre_crop_actions);
         postCropActions = findViewById(R.id.post_crop_actions);
+
+        // Set background colors to ensure no white backgrounds
+        ivCrop.setBackgroundColor(android.graphics.Color.BLACK);
+        ivPreview.setBackgroundColor(android.graphics.Color.BLACK);
 
         // Get image path from intent
         String imagePath = getIntent().getStringExtra("imagePath");
@@ -97,6 +93,9 @@ public class CropperActivity extends AppCompatActivity {
             return;
         }
 
+        // Initially hide the Done button in pre-crop mode
+        btnDone.setVisibility(View.GONE);
+
         // Crop Image
         btnCrop.setOnClickListener(v -> {
             croppedBitmap = ivCrop.crop();
@@ -109,7 +108,7 @@ public class CropperActivity extends AppCompatActivity {
             }
         });
 
-        // Rotate Image (only available after crop)
+        // Rotate Image
         btnRotate.setOnClickListener(v -> {
             if (croppedBitmap != null) {
                 rotationAngle = (rotationAngle + 90) % 360;
@@ -141,6 +140,12 @@ public class CropperActivity extends AppCompatActivity {
         btnReset.setOnClickListener(v -> {
             switchToPreCropUI();
         });
+
+        // Cancel button (in the top bar)
+        btnCancel.setOnClickListener(v -> {
+            setResult(RESULT_CANCELED);
+            finish();
+        });
     }
 
     private void setFullScreenMode() {
@@ -153,23 +158,31 @@ public class CropperActivity extends AppCompatActivity {
     }
 
     private void switchToPostCropUI() {
-        // Hide cropper and show preview
-        ivCrop.setVisibility(View.GONE);
-        ivPreview.setVisibility(View.VISIBLE);
+        // Hide crop container and show preview container
+        findViewById(R.id.crop_container).setVisibility(View.GONE);
+        findViewById(R.id.preview_container).setVisibility(View.VISIBLE);
+
+        // Set the preview image
         ivPreview.setImageBitmap(croppedBitmap);
 
         // Hide pre-crop buttons and show post-crop buttons
         preCropActions.setVisibility(View.GONE);
         postCropActions.setVisibility(View.VISIBLE);
 
+        // Show Done button in top bar
+        btnDone.setVisibility(View.VISIBLE);
+
+        // Change top left button text to "Back"
+        btnCancel.setText("Back");
+
         // Set flag
         isCropped = true;
     }
 
     private void switchToPreCropUI() {
-        // Show cropper and hide preview
-        ivCrop.setVisibility(View.VISIBLE);
-        ivPreview.setVisibility(View.GONE);
+        // Show crop container and hide preview container
+        findViewById(R.id.crop_container).setVisibility(View.VISIBLE);
+        findViewById(R.id.preview_container).setVisibility(View.GONE);
 
         // Reset the cropper with the original image
         if (originalBitmap != null) {
@@ -179,6 +192,12 @@ public class CropperActivity extends AppCompatActivity {
         // Show pre-crop buttons and hide post-crop buttons
         preCropActions.setVisibility(View.VISIBLE);
         postCropActions.setVisibility(View.GONE);
+
+        // Hide Done button in top bar
+        btnDone.setVisibility(View.GONE);
+
+        // Change top left button text back to "Cancel"
+        btnCancel.setText("Cancel");
 
         // Reset state
         rotationAngle = 0;
@@ -240,7 +259,13 @@ public class CropperActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        setResult(RESULT_CANCELED);
-        super.onBackPressed();
+        if (isCropped) {
+            // If we're in post-crop mode, go back to pre-crop mode
+            switchToPreCropUI();
+        } else {
+            // Otherwise, cancel and exit
+            setResult(RESULT_CANCELED);
+            super.onBackPressed();
+        }
     }
 }

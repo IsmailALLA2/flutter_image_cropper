@@ -17,6 +17,7 @@ import io.flutter.plugin.common.PluginRegistry.ActivityResultListener;
 public class FlutterImageCropperPlugin implements FlutterPlugin, MethodCallHandler, ActivityAware, ActivityResultListener {
 
     private static final int CROP_IMAGE_REQUEST_CODE = 7890;
+    private static final int CAMERA_IMAGE_REQUEST_CODE = 7891;
 
     private MethodChannel channel;
     private Activity activity;
@@ -94,6 +95,33 @@ public class FlutterImageCropperPlugin implements FlutterPlugin, MethodCallHandl
                         "Failed to start cropper activity: " + e.getMessage(), null);
                 pendingResult = null;
             }
+        } else if (call.method.equals("takePictureAndCrop")) {
+            if (activity == null) {
+                result.error("ACTIVITY_NULL", "Activity is null", null);
+                return;
+            }
+
+            // Check camera permission
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                if (activity.checkSelfPermission(android.Manifest.permission.CAMERA)
+                        != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                    activity.requestPermissions(new String[]{android.Manifest.permission.CAMERA}, 1002);
+                    result.error("PERMISSION_DENIED", "Camera permission is required to take pictures", null);
+                    return;
+                }
+            }
+
+            pendingResult = result;
+
+            // Launch the CameraActivity
+            try {
+                Intent intent = new Intent(activity, CameraActivity.class);
+                activity.startActivityForResult(intent, CAMERA_IMAGE_REQUEST_CODE);
+            } catch (Exception e) {
+                pendingResult.error("ACTIVITY_START_ERROR",
+                        "Failed to start camera activity: " + e.getMessage(), null);
+                pendingResult = null;
+            }
         } else {
             result.notImplemented();
         }
@@ -131,7 +159,7 @@ public class FlutterImageCropperPlugin implements FlutterPlugin, MethodCallHandl
 
     @Override
     public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == CROP_IMAGE_REQUEST_CODE && pendingResult != null) {
+        if ((requestCode == CROP_IMAGE_REQUEST_CODE || requestCode == CAMERA_IMAGE_REQUEST_CODE) && pendingResult != null) {
             if (resultCode == Activity.RESULT_OK && data != null) {
                 String croppedImagePath = data.getStringExtra("imagePath");
                 pendingResult.success(croppedImagePath);
@@ -144,15 +172,18 @@ public class FlutterImageCropperPlugin implements FlutterPlugin, MethodCallHandl
         return false;
     }
 
-    
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == 1001) {
+        if (requestCode == 1001 || requestCode == 1002) {
             if (grantResults.length > 0 && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                // Permission granted, retry cropping
+                // Permission granted, retry operation
             } else {
-                pendingResult.error("PERMISSION_DENIED", "Storage permission is required to access images", null);
+                if (pendingResult != null) {
+                    pendingResult.error("PERMISSION_DENIED",
+                            requestCode == 1001 ? "Storage permission is required to access images"
+                                    : "Camera permission is required to take pictures", null);
+                    pendingResult = null;
+                }
             }
         }
     }
-
 }

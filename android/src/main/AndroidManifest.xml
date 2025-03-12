@@ -3,9 +3,13 @@
     xmlns:tools="http://schemas.android.com/tools" package="com.sml.flutter_image_cropper">
 
     <!-- Storage permissions -->
-  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+
+    <!-- Camera permission -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="true" />
 
 
     <application>
@@ -14,6 +18,7 @@
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
 
-        <activity android:name=".CropperActivity" android:theme="@style/Theme.AppCompat.NoActionBar" android:exported="false" />
+        <activity android:name=".CropperActivity" android:theme="@style/CropperTheme" android:exported="false" />
+        <activity android:name=".CameraActivity" android:theme="@style/CropperTheme" android:exported="false" />
     </application>
 </manifest>
