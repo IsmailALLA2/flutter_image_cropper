@@ -4,12 +4,9 @@ A Flutter plugin for Android that provides native camera capture and image cropp
 
 ## Features
 
-- 📷 Native Android camera UI with a circular capture button
+- 📷 Native Android camera UI
 - ✂️ Powerful image cropping with auto-detection
 - 🔄 Image rotation functionality
-- 💾 Automatic image saving to gallery
-- 📱 Proper permission handling for different Android versions
-- 🔍 Handles image orientation correctly
 - 🔦 Camera flash control (on/off)
 
 ## Installation
