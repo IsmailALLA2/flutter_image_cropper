@@ -22,7 +22,7 @@ Since this plugin is not available on pub.dev, you'll need to install it directl
 dependencies:
   flutter_image_cropper:
     git:
-      url: https://github.com/yourusername/flutter_image_cropper.git
+      url: https://github.com/IsmailALLA2/flutter_image_cropper.git
       ref: main # or specify your branch/tag
 
   # Required dependencies
